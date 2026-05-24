@@ -24,6 +24,7 @@ var _last_rendered_max_lives := -1
 var _heart_full_texture: Texture2D = null
 var _heart_empty_texture: Texture2D = null
 var _player_in_exit_zone := false
+var _exit_input_latched := false
 
 var _combo_system: Node = null
 var _audio_director: Node = null
@@ -84,6 +85,8 @@ func _process(delta: float) -> void:
 			_update_hud_labels()
 			_on_escape_failed()
 			return
+	else:
+		_exit_input_latched = false
 
 	_update_hud_labels()
 
@@ -156,7 +159,7 @@ func _ensure_controls_overlay() -> void:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	label.add_theme_color_override("font_color", Color(0.96, 0.94, 0.88, 1.0))
 	label.add_theme_font_size_override("font_size", 13)
-	label.text = "CONTROLES\nA / D ou <- ->  mover\nEspaco  pular\nShift  dash\nCtrl  agachar\nJ  agarrar / arremessar\nK  taunt / parry\n\nDica: mantenha o combo ativo derrotando inimigos e coletando sem parar."
+	label.text = "CONTROLES\nA / D ou <- ->  mover\nEspaco  pular\nShift  dash\nCtrl  agachar\nJ  agarrar / arremessar\nK  taunt / parry\nW ou Seta Cima  entrar na saida\n\nDica: mantenha o combo ativo derrotando inimigos e coletando sem parar."
 	panel.add_child(label)
 
 func _ensure_combo_label() -> void:
@@ -319,6 +322,7 @@ func _on_exit_area_body_entered(body: Node) -> void:
 		return
 
 	_player_in_exit_zone = true
+	_exit_input_latched = false
 	_update_exit_label(_phase == "escape")
 	if _phase == "escape" and objective_label:
 		objective_label.text = "Porta encontrada! Aperte W ou Seta Cima para entrar."
@@ -331,6 +335,7 @@ func _on_exit_area_body_exited(body: Node) -> void:
 		return
 
 	_player_in_exit_zone = false
+	_exit_input_latched = false
 	_update_exit_label(false)
 	if _phase == "escape" and objective_label:
 		_set_escape_text()
@@ -341,6 +346,7 @@ func _complete_level() -> void:
 
 	_phase = "complete"
 	_player_in_exit_zone = false
+	_exit_input_latched = false
 	_update_exit_label(false)
 	if objective_label:
 		objective_label.text = "Fase concluida!"
@@ -511,13 +517,21 @@ func _build_hearts_text(count: int) -> String:
 
 func _try_complete_if_player_in_exit() -> void:
 	if not _player_in_exit_zone:
+		_exit_input_latched = false
 		return
 
 	if _phase != "escape":
+		_exit_input_latched = false
 		return
 
-	if not Input.is_action_just_pressed("move_up"):
+	if not Input.is_action_pressed("move_up"):
+		_exit_input_latched = false
 		return
+
+	if _exit_input_latched:
+		return
+
+	_exit_input_latched = true
 
 	_complete_level()
 

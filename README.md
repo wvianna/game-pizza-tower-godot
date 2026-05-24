@@ -89,7 +89,7 @@ Fluxo de cada fase:
 
 1. Explore e colete toppings.
 2. Destrua o Pillar John (com dash).
-3. Pizza Time: volte para a area de saida antes do tempo acabar.
+3. Pizza Time: va para a porta de saida antes do tempo acabar e pressione W ou Seta Cima para entrar.
 4. Avance para a proxima fase.
 
 Ao concluir a terceira fase, o jogo vai para [victory_screen.tscn](scenes/game/victory_screen.tscn).
@@ -122,6 +122,7 @@ Documentacao de continuidade (estado atual, arquitetura, status por issue, pende
 - Dash: Shift ou X
 - Agarrar/Arremessar: J ou C
 - Taunt/Parry: K ou V
+- Entrar na saida final: W ou Seta Cima
 - Agachar/Deslizar: Ctrl ou S ou Seta Baixo
 - Exportar telemetria: F8
 
