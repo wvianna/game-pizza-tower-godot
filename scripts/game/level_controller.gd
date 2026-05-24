@@ -5,6 +5,8 @@ class_name LevelController
 @export var escape_duration := 30.0
 @export var collectible_bonus_seconds := 1.25
 @export_file("*.tscn") var fallback_scene := "res://scenes/game/victory_screen.tscn"
+@export var max_lives := 3
+@export var fall_limit_y := 1120.0
 
 var _phase := "explore"
 var _time_left := 0.0
@@ -14,6 +16,14 @@ var _score := 0
 var _combo_count := 0
 var _combo_multiplier := 1
 var _combo_timer_left := 0.0
+var _current_lives := 0
+var _player_spawn_position := Vector2.ZERO
+var _fall_respawn_cooldown := 0.0
+var _last_rendered_lives := -1
+var _last_rendered_max_lives := -1
+var _heart_full_texture: Texture2D = null
+var _heart_empty_texture: Texture2D = null
+var _player_in_exit_zone := false
 
 var _combo_system: Node = null
 var _audio_director: Node = null
@@ -27,17 +37,26 @@ var _audio_director: Node = null
 @onready var timer_label: Label = get_node_or_null("HudLayer/TimerLabel")
 @onready var collect_label: Label = get_node_or_null("HudLayer/CollectLabel")
 @onready var combo_label: Label = get_node_or_null("HudLayer/ComboLabel")
+@onready var lives_label: Label = get_node_or_null("HudLayer/LivesLabel")
+@onready var lives_container: HBoxContainer = get_node_or_null("HudLayer/LivesContainer")
 
 func _ready() -> void:
 	_ensure_runtime_nodes()
 	_ensure_controls_overlay()
 	_ensure_combo_label()
+	_ensure_lives_label()
+
+	_current_lives = max(1, max_lives)
+	var player_node_2d := player as Node2D
+	if player_node_2d != null:
+		_player_spawn_position = player_node_2d.global_position
 
 	if pillar != null and pillar.has_signal("pillar_destroyed"):
 		pillar.connect("pillar_destroyed", Callable(self, "_on_pillar_destroyed"))
 
 	if exit_area != null:
 		exit_area.body_entered.connect(_on_exit_area_body_entered)
+		exit_area.body_exited.connect(_on_exit_area_body_exited)
 
 	_connect_collectibles()
 	_connect_player_score_sources()
@@ -50,6 +69,12 @@ func _ready() -> void:
 	_set_explore_text()
 
 func _process(delta: float) -> void:
+	if _fall_respawn_cooldown > 0.0:
+		_fall_respawn_cooldown = maxf(_fall_respawn_cooldown - delta, 0.0)
+
+	_check_player_fall_out()
+	_process_exit_entry_input()
+
 	if _phase == "escape":
 		_time_left -= delta
 		if _time_left <= 0.0:
@@ -148,6 +173,38 @@ func _ensure_combo_label() -> void:
 	combo_label.add_theme_color_override("font_color", Color(1.0, 0.87, 0.45, 1.0))
 	combo_label.add_theme_font_size_override("font_size", 14)
 	hud_layer.add_child(combo_label)
+
+func _ensure_lives_label() -> void:
+	if hud_layer == null:
+		return
+
+	var panel := hud_layer.get_node_or_null("Panel") as Control
+	if panel != null and panel.offset_bottom < 136.0:
+		panel.offset_bottom = 136.0
+
+	if lives_label == null:
+		lives_label = Label.new()
+		lives_label.name = "LivesLabel"
+		lives_label.offset_left = 24.0
+		lives_label.offset_top = 100.0
+		lives_label.offset_right = 84.0
+		lives_label.offset_bottom = 124.0
+		lives_label.add_theme_color_override("font_color", Color(1.0, 0.82, 0.82, 1.0))
+		lives_label.add_theme_font_size_override("font_size", 14)
+		hud_layer.add_child(lives_label)
+
+	if lives_container == null:
+		lives_container = HBoxContainer.new()
+		lives_container.name = "LivesContainer"
+		lives_container.offset_left = 88.0
+		lives_container.offset_top = 100.0
+		lives_container.offset_right = 260.0
+		lives_container.offset_bottom = 124.0
+		lives_container.add_theme_constant_override("separation", 4)
+		hud_layer.add_child(lives_container)
+
+	_load_heart_textures()
+	_refresh_lives_ui()
 
 func _connect_collectibles() -> void:
 	_total_collectibles = 0
@@ -253,18 +310,33 @@ func _on_combo_broken(previous_combo: int) -> void:
 	_update_hud_labels()
 
 func _on_exit_area_body_entered(body: Node) -> void:
-	if _phase != "escape":
-		return
-
 	if body == null:
 		return
 
 	if not body.is_in_group("player"):
 		return
 
-	_complete_level()
+	_player_in_exit_zone = true
+	if _phase == "escape" and objective_label:
+		objective_label.text = "Porta encontrada! Aperte W ou Seta Cima para entrar."
+
+func _on_exit_area_body_exited(body: Node) -> void:
+	if body == null:
+		return
+
+	if not body.is_in_group("player"):
+		return
+
+	_player_in_exit_zone = false
+	if _phase == "escape" and objective_label:
+		_set_escape_text()
 
 func _complete_level() -> void:
+	if _phase == "complete":
+		return
+
+	_phase = "complete"
+	_player_in_exit_zone = false
 	if objective_label:
 		objective_label.text = "Fase concluida!"
 
@@ -283,6 +355,57 @@ func _on_escape_failed() -> void:
 
 	call_deferred("_deferred_reload_scene")
 
+func _check_player_fall_out() -> void:
+	if _fall_respawn_cooldown > 0.0:
+		return
+
+	var player_node_2d := player as Node2D
+	if player_node_2d == null:
+		return
+
+	if player_node_2d.global_position.y <= fall_limit_y:
+		return
+
+	_handle_player_fall_loss()
+
+func _handle_player_fall_loss() -> void:
+	if _current_lives <= 0:
+		return
+
+	_current_lives -= 1
+	_fall_respawn_cooldown = 0.28
+	_emit_audio("player_hit")
+
+	if _combo_system != null:
+		_combo_system.force_break_combo()
+
+	if _current_lives <= 0:
+		if objective_label:
+			objective_label.text = "Sem vidas! Reiniciando fase..."
+		call_deferred("_deferred_reload_scene")
+		return
+
+	_respawn_player_at_start()
+	_update_hud_labels()
+
+func _respawn_player_at_start() -> void:
+	if player == null:
+		return
+
+	if player.has_method("respawn_at"):
+		player.call("respawn_at", _player_spawn_position)
+		return
+
+	var player_body := player as CharacterBody2D
+	if player_body != null:
+		player_body.global_position = _player_spawn_position
+		player_body.velocity = Vector2.ZERO
+		return
+
+	var player_node_2d := player as Node2D
+	if player_node_2d != null:
+		player_node_2d.global_position = _player_spawn_position
+
 func _deferred_change_scene(path: String) -> void:
 	get_tree().change_scene_to_file(path)
 
@@ -295,7 +418,7 @@ func _set_explore_text() -> void:
 
 func _set_escape_text() -> void:
 	if objective_label:
-		objective_label.text = "PIZZA TIME! Entre na porta para avancar!"
+		objective_label.text = "PIZZA TIME! Va para a porta final e aperte W/Seta Cima."
 
 func _update_hud_labels() -> void:
 	if timer_label:
@@ -307,6 +430,8 @@ func _update_hud_labels() -> void:
 	if collect_label:
 		collect_label.text = "Coletaveis: %d/%d | Score: %d" % [_collected, _total_collectibles, _score]
 
+	_refresh_lives_ui()
+
 	if combo_label:
 		if _combo_count > 0:
 			combo_label.text = "Combo x%d  |  Hits: %d  |  %.1fs" % [_combo_multiplier, _combo_count, _combo_timer_left]
@@ -316,11 +441,80 @@ func _update_hud_labels() -> void:
 func _emit_audio(event_name: String) -> void:
 	get_tree().call_group("audio_director", "play_sfx", event_name)
 
-func _try_complete_if_player_in_exit() -> void:
-	if exit_area == null:
+func _load_heart_textures() -> void:
+	if _heart_full_texture != null and _heart_empty_texture != null:
 		return
 
-	for body in exit_area.get_overlapping_bodies():
-		if body != null and body.is_in_group("player"):
-			_complete_level()
-			return
+	_heart_full_texture = _load_texture_from_png("res://imagens/ui_heart_full.png")
+	_heart_empty_texture = _load_texture_from_png("res://imagens/ui_heart_empty.png")
+
+func _load_texture_from_png(path: String) -> Texture2D:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return null
+
+	var bytes: PackedByteArray = file.get_buffer(file.get_length())
+	var image := Image.new()
+	if image.load_png_from_buffer(bytes) != OK:
+		return null
+
+	return ImageTexture.create_from_image(image)
+
+func _refresh_lives_ui() -> void:
+	if lives_label == null:
+		return
+
+	var total_slots: int = maxi(1, max_lives)
+	if lives_container == null:
+		lives_label.text = "Vidas: %s" % _build_hearts_text(_current_lives)
+		return
+
+	if _last_rendered_lives == _current_lives and _last_rendered_max_lives == total_slots and lives_container.get_child_count() == total_slots:
+		return
+
+	_last_rendered_lives = _current_lives
+	_last_rendered_max_lives = total_slots
+
+	for child in lives_container.get_children():
+		lives_container.remove_child(child)
+		child.queue_free()
+
+	if _heart_full_texture == null or _heart_empty_texture == null:
+		lives_label.text = "Vidas: %s" % _build_hearts_text(_current_lives)
+		return
+
+	lives_label.text = "Vidas:"
+	for i in range(total_slots):
+		var heart: TextureRect = TextureRect.new()
+		heart.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		heart.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		heart.custom_minimum_size = Vector2(18, 18)
+		heart.texture = _heart_full_texture if i < _current_lives else _heart_empty_texture
+		lives_container.add_child(heart)
+
+func _build_hearts_text(count: int) -> String:
+	if count <= 0:
+		return "--"
+
+	var hearts: String = ""
+	for i in range(count):
+		hearts += "<3"
+		if i < count - 1:
+			hearts += " "
+
+	return hearts
+
+func _try_complete_if_player_in_exit() -> void:
+	if not _player_in_exit_zone:
+		return
+
+	if _phase != "escape":
+		return
+
+	if not Input.is_action_just_pressed("move_up"):
+		return
+
+	_complete_level()
+
+func _process_exit_entry_input() -> void:
+	_try_complete_if_player_in_exit()

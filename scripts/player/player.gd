@@ -24,6 +24,7 @@ var _hit_stun_left := 0.0
 var _taunt_anim_left := 0.0
 var _hold_anchor_base_position := Vector2.ZERO
 var _grab_area_base_position := Vector2.ZERO
+var _air_jumps_left := 0
 
 func _ready() -> void:
 	InputBootstrap.ensure_default_actions()
@@ -31,6 +32,7 @@ func _ready() -> void:
 	telemetry_component.start_session()
 	_hold_anchor_base_position = hold_anchor.position
 	_grab_area_base_position = grab_area.position
+	_air_jumps_left = jump_component.get_max_air_jumps()
 	_load_character_texture()
 	_was_on_floor = is_on_floor()
 
@@ -72,9 +74,8 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, move_component.deceleration * delta)
 
 	velocity.y += jump_component.get_gravity() * delta
-	if _hit_stun_left <= 0.0 and Input.is_action_just_pressed("jump") and is_on_floor() and not Input.is_action_pressed("crouch"):
-		velocity.y = jump_component.get_jump_velocity()
-		_emit_audio("player_jump")
+	if _hit_stun_left <= 0.0:
+		_handle_jump_input()
 
 	if _hit_stun_left <= 0.0:
 		_handle_super_jump(delta)
@@ -90,6 +91,8 @@ func _physics_process(delta: float) -> void:
 
 	if is_on_floor() and not _was_on_floor and pre_collision_vertical_speed > 260.0:
 		_emit_audio("player_land")
+	if is_on_floor():
+		_air_jumps_left = jump_component.get_max_air_jumps()
 	_was_on_floor = is_on_floor()
 
 	telemetry_component.track_frame(delta, velocity, is_on_floor(), dash_component.get_current_tier())
@@ -139,6 +142,26 @@ func _handle_super_jump(delta: float) -> void:
 
 	_super_jump_charging = false
 	_super_jump_charge = 0.0
+
+func _handle_jump_input() -> void:
+	if not Input.is_action_just_pressed("jump"):
+		return
+
+	if is_on_floor():
+		if Input.is_action_pressed("crouch"):
+			return
+
+		velocity.y = jump_component.get_jump_velocity()
+		_air_jumps_left = jump_component.get_max_air_jumps()
+		_emit_audio("player_jump")
+		return
+
+	if _air_jumps_left <= 0:
+		return
+
+	velocity.y = jump_component.get_air_jump_velocity()
+	_air_jumps_left -= 1
+	_emit_audio("player_jump")
 
 func _handle_body_slam() -> void:
 	if is_on_floor():
@@ -234,6 +257,19 @@ func apply_enemy_hit(from_position: Vector2) -> void:
 	velocity.y = -280.0
 	_hit_stun_left = 0.24
 	_emit_audio("player_hit")
+
+func respawn_at(spawn_position: Vector2) -> void:
+	grab_throw_component.drop_carried()
+	global_position = spawn_position
+	velocity = Vector2.ZERO
+	dash_component.reset_dash()
+	_super_jump_charge = 0.0
+	_super_jump_charging = false
+	_body_slam_used_in_air = false
+	_hit_stun_left = 0.0
+	_taunt_anim_left = 0.0
+	_dash_was_active = false
+	_air_jumps_left = jump_component.get_max_air_jumps()
 
 func _emit_audio(event_name: String) -> void:
 	get_tree().call_group("audio_director", "play_sfx", event_name)

@@ -1,6 +1,6 @@
-# Game Pizza Tower (Protótipo)
+# Game Like Pizza Tower (Protótipo)
 
-Jogo 2D de plataforma em alta velocidade, inspirado em Pizza Tower, com foco em dash, combo e fuga de fase.
+Jogo 2D de plataforma em alta velocidade, inspirado em Pizza Tower, com foco em dash, combo e fuga de fase. Goto é o motor de jogo utilizado para desenvolvimento. Gotod 4.5+ é recomendado para melhor compatibilidade.
 
 ## Requisitos
 
