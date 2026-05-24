@@ -22,11 +22,15 @@ var _was_on_floor := false
 var _animation_time := 0.0
 var _hit_stun_left := 0.0
 var _taunt_anim_left := 0.0
+var _hold_anchor_base_position := Vector2.ZERO
+var _grab_area_base_position := Vector2.ZERO
 
 func _ready() -> void:
 	InputBootstrap.ensure_default_actions()
 	add_to_group("player")
 	telemetry_component.start_session()
+	_hold_anchor_base_position = hold_anchor.position
+	_grab_area_base_position = grab_area.position
 	_load_character_texture()
 	_was_on_floor = is_on_floor()
 
@@ -39,15 +43,16 @@ func _physics_process(delta: float) -> void:
 
 	if _hit_stun_left <= 0.0:
 		input_axis = Input.get_axis("move_left", "move_right")
+		if absf(input_axis) > 0.01:
+			_facing_direction = -1 if input_axis < 0.0 else 1
+		_update_interaction_anchors(delta)
 		_handle_grab_throw_input()
 		_handle_taunt_parry_input()
 	else:
 		_hit_stun_left = maxf(_hit_stun_left - delta, 0.0)
 		dash_component.reset_dash()
+		_update_interaction_anchors(delta)
 		velocity.x = move_toward(velocity.x, 0.0, move_component.deceleration * delta)
-
-	if absf(input_axis) > 0.01:
-		_facing_direction = -1 if input_axis < 0.0 else 1
 
 	if _hit_stun_left <= 0.0:
 		dash_component.update_dash(delta, Input.is_action_pressed("dash"), input_axis, _facing_direction)
@@ -62,7 +67,7 @@ func _physics_process(delta: float) -> void:
 		var dash_target_speed := dash_component.get_target_speed(move_component.max_speed) * float(dash_direction)
 		velocity.x = move_toward(velocity.x, dash_target_speed, dash_component.get_dash_acceleration() * delta)
 	elif _hit_stun_left <= 0.0:
-		velocity.x = move_component.compute_horizontal_velocity(velocity.x, input_axis, delta)
+		velocity.x = move_component.compute_horizontal_velocity(velocity.x, input_axis, delta, is_on_floor())
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, move_component.deceleration * delta)
 
@@ -232,6 +237,17 @@ func apply_enemy_hit(from_position: Vector2) -> void:
 
 func _emit_audio(event_name: String) -> void:
 	get_tree().call_group("audio_director", "play_sfx", event_name)
+
+func _update_interaction_anchors(delta: float) -> void:
+	if hold_anchor == null or grab_area == null:
+		return
+
+	var target_hold_x := absf(_hold_anchor_base_position.x) * float(_facing_direction)
+	var target_grab_x := absf(_grab_area_base_position.x) * float(_facing_direction)
+	var blend := clampf(delta * 26.0, 0.0, 1.0)
+
+	hold_anchor.position.x = lerpf(hold_anchor.position.x, target_hold_x, blend)
+	grab_area.position.x = lerpf(grab_area.position.x, target_grab_x, blend)
 
 func _load_character_texture() -> void:
 	if character_sprite == null:

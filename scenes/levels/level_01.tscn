@@ -87,7 +87,7 @@ color = Color(0.890196, 0.952941, 1, 0.68)
 polygon = PackedVector2Array(-84, 2, -65, -17, -28, -22, 2, -18, 32, -26, 60, -18, 86, -4, 78, 14, 48, 18, 10, 16, -22, 20, -54, 16, -78, 9)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
-position = Vector2(140, 470)
+position = Vector2(420, 470)
 
 [node name="Floor" type="StaticBody2D" parent="."]
 position = Vector2(1120, 700)
@@ -160,7 +160,7 @@ color = Color(0.960784, 0.713726, 0.247059, 1)
 polygon = PackedVector2Array(-90, -14, 90, -14, 90, -6, -90, -6)
 
 [node name="ExitArea" type="Area2D" parent="."]
-position = Vector2(140, 596)
+position = Vector2(2060, 596)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ExitArea"]
 shape = SubResource("6")

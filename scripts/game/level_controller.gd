@@ -220,6 +220,7 @@ func _on_pillar_destroyed() -> void:
 	_emit_audio("pillar_break")
 	_set_escape_text()
 	_update_hud_labels()
+	_try_complete_if_player_in_exit()
 
 func _on_enemy_defeated(points: int, reason: String) -> void:
 	_register_action(points, "enemy_%s" % reason)
@@ -294,7 +295,7 @@ func _set_explore_text() -> void:
 
 func _set_escape_text() -> void:
 	if objective_label:
-		objective_label.text = "PIZZA TIME! Volte para a entrada!"
+		objective_label.text = "PIZZA TIME! Entre na porta para avancar!"
 
 func _update_hud_labels() -> void:
 	if timer_label:
@@ -314,3 +315,12 @@ func _update_hud_labels() -> void:
 
 func _emit_audio(event_name: String) -> void:
 	get_tree().call_group("audio_director", "play_sfx", event_name)
+
+func _try_complete_if_player_in_exit() -> void:
+	if exit_area == null:
+		return
+
+	for body in exit_area.get_overlapping_bodies():
+		if body != null and body.is_in_group("player"):
+			_complete_level()
+			return
