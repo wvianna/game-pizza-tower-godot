@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/game/level_controller.gd" id="1_level_controller"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/environment/destructible_block.tscn" id="5_block"]
 [ext_resource type="PackedScene" path="res://scenes/environment/throwable_object.tscn" id="6_throwable"]
 [ext_resource type="Script" path="res://scripts/environment/cloud_layer.gd" id="7_cloud"]
+[ext_resource type="PackedScene" path="res://scenes/environment/enemy_walker.tscn" id="8_enemy"]
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(2520, 72)
@@ -255,6 +256,26 @@ position = Vector2(2060, 386)
 
 [node name="Collect07" parent="." instance=ExtResource("4_collectible")]
 position = Vector2(2280, 670)
+
+[node name="EnemyWalkerA" parent="." instance=ExtResource("8_enemy")]
+position = Vector2(980, 640)
+patrol_distance = 220.0
+walk_speed = 210.0
+
+[node name="EnemyWalkerB" parent="." instance=ExtResource("8_enemy")]
+position = Vector2(1560, 440)
+patrol_distance = 190.0
+walk_speed = 225.0
+
+[node name="EnemyWalkerC" parent="." instance=ExtResource("8_enemy")]
+position = Vector2(2110, 400)
+patrol_distance = 150.0
+walk_speed = 235.0
+
+[node name="EnemyWalkerD" parent="." instance=ExtResource("8_enemy")]
+position = Vector2(2360, 640)
+patrol_distance = 130.0
+walk_speed = 250.0
 
 [node name="HudLayer" type="CanvasLayer" parent="."]
 

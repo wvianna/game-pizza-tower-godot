@@ -94,6 +94,18 @@ Fluxo de cada fase:
 
 Ao concluir a terceira fase, o jogo vai para [victory_screen.tscn](scenes/game/victory_screen.tscn).
 
+## Novidades desta iteracao
+
+- Quadro flutuante de controles no canto superior direito em todas as fases da campanha.
+- Player com sprite baseado em imagem da pasta [imagens](imagens) e animacao simples por estado (idle/corrida/dash/ar).
+- Inimigos ativos (patrulha, contato com player, interacao com dash e arremesso) nas fases 1, 2 e 3.
+- Combo continuo com timeout, multiplicador progressivo e pontuacao integrada no HUD.
+- Audio sintetico em runtime com:
+  - musica de fundo;
+  - sons do player (pulo, dash, taunt, dano, aterrissagem, arremesso);
+  - sons de inimigo (alerta, derrota);
+  - sons de colisao/impacto e quebra.
+
 ## Handoff para proximo agente
 
 Documentacao de continuidade (estado atual, arquitetura, status por issue, pendencias e plano de execucao):

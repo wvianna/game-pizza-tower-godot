@@ -31,12 +31,19 @@ Fluxo implementado:
 1. Nivel 1 -> Nivel 2 -> Nivel 3
 2. Em cada nivel: explorar, coletar toppings, destruir Pillar John, iniciar fuga com cronometro, voltar para area de saida.
 3. Conclusao do nivel 3 abre tela final.
+4. HUD inclui painel flutuante de controles no canto superior direito.
+5. Pontuacao usa combo continuo com multiplicador e timeout.
+6. Campanha possui inimigos ativos com patrulha/interacao (dash, contato, arremesso/parry).
+7. Audio sintetico em runtime com BGM + SFX de player/inimigo/colisoes.
 
 Arquivos principais deste fluxo:
 
 - Controlador de fase: [../scripts/game/level_controller.gd](../scripts/game/level_controller.gd)
+- Combo: [../scripts/game/combo_system.gd](../scripts/game/combo_system.gd)
+- Audio: [../scripts/audio/audio_director.gd](../scripts/audio/audio_director.gd)
 - Pilar objetivo: [../scripts/environment/pillar_john.gd](../scripts/environment/pillar_john.gd)
 - Coletavel: [../scripts/environment/collectible_topping.gd](../scripts/environment/collectible_topping.gd)
+- Inimigo base: [../scripts/environment/enemy_walker.gd](../scripts/environment/enemy_walker.gd)
 - Tela final: [../scripts/game/victory_screen.gd](../scripts/game/victory_screen.gd)
 - Cenas de campanha:
   - [../scenes/levels/level_01.tscn](../scenes/levels/level_01.tscn)
@@ -79,33 +86,36 @@ Visual/fase:
 
 ### 5.2 Parcial (requer completar criterio original do backlog)
 
-- GZ-014: existe score basico por coletavel, mas ainda falta ComboSystem + Ranking D..P completo.
+- GZ-014: ComboSystem continuo ja implementado; ainda falta Ranking D..P completo.
+- GZ-020: inimigo ativo base implementado, mas IA/comportamentos avancados ainda pendentes.
 - GZ-023: existe progressao linear por troca de cena, mas nao ha desbloqueio por coletaveis globais.
 
 ### 5.3 Nao iniciado
 
-- GZ-017, GZ-018, GZ-020
+- GZ-017, GZ-018
 - GZ-022, GZ-024, GZ-025
 - GZ-026 em diante
 
 ## 6. Pendencias tecnicas importantes
 
-1. Combo e ranking oficial ainda ausentes.
+1. Ranking oficial D..P ainda ausente (combo continuo ja existe).
 2. Nao existe boss (sprints 6+ nao iniciadas).
 3. Nao existe save global de campanha/coletaveis.
 4. Nao existe CI de export Windows/Linux.
-5. Segredos/jaulas/Lap2 ainda nao implementados.
-6. Testes atuais sao smoke + boot, sem testes unitarios de gameplay.
+5. IA de inimigo ainda e baseline (patrulha + contato); faltam variacoes e tuning.
+6. Segredos/jaulas/Lap2 ainda nao implementados.
+7. Testes atuais sao smoke + boot, sem testes unitarios de gameplay.
 
 ## 7. Plano recomendado para continuidade imediata
 
 Ordem sugerida (sem quebrar dependencias):
 
 1. Fechar GZ-014 (ComboSystem + Ranking).
-2. Fechar GZ-017 e GZ-018 (segredos + jaulas).
-3. Fechar GZ-023 corretamente (desbloqueio por coletaveis globais).
-4. Fechar GZ-024 e GZ-025 (telemetria ampliada + balance).
-5. Iniciar GZ-026 a GZ-028 (boss).
+2. Evoluir GZ-020 (IA de inimigos, tipos adicionais, integracao com arenas).
+3. Fechar GZ-017 e GZ-018 (segredos + jaulas).
+4. Fechar GZ-023 corretamente (desbloqueio por coletaveis globais).
+5. Fechar GZ-024 e GZ-025 (telemetria ampliada + balance).
+6. Iniciar GZ-026 a GZ-028 (boss).
 
 ## 8. Como rodar e validar
 

@@ -1,6 +1,6 @@
 # Relatorio de Validacao Automatica
 
-Data: 2026-05-24 12:47:18
+Data: 2026-05-24 14:52:20
 
 ## Teste 1 - Controles de teclado (smoke)
 
@@ -14,7 +14,7 @@ Comando:
 
 Saida:
 
-```
+```text
 == Validando mapeamento de teclado em input_bootstrap.gd ==
 [OK] Mover esquerda (A/Seta Esquerda)
 [OK] Mover direita (D/Seta Direita)
@@ -41,7 +41,7 @@ godot4 --headless --path . --quit
 
 Saida:
 
-```
+```text
 Godot Engine v4.5.stable.official.876b29033 - https://godotengine.org
 ```
 

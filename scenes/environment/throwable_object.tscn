@@ -6,6 +6,8 @@
 radius = 12.0
 
 [node name="ThrowableObject" type="RigidBody2D"]
+contact_monitor = true
+max_contacts_reported = 4
 script = ExtResource("1_script")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

@@ -17,5 +17,6 @@ func try_break(impact_speed: float, dash_tier: int) -> bool:
 		return false
 
 	_broken = true
+	get_tree().call_group("audio_director", "play_sfx", "collision_break")
 	queue_free()
 	return true
