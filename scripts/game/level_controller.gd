@@ -39,6 +39,7 @@ var _audio_director: Node = null
 @onready var combo_label: Label = get_node_or_null("HudLayer/ComboLabel")
 @onready var lives_label: Label = get_node_or_null("HudLayer/LivesLabel")
 @onready var lives_container: HBoxContainer = get_node_or_null("HudLayer/LivesContainer")
+@onready var exit_label: Label = get_node_or_null("ExitArea/Label")
 
 func _ready() -> void:
 	_ensure_runtime_nodes()
@@ -67,6 +68,7 @@ func _ready() -> void:
 
 	_update_hud_labels()
 	_set_explore_text()
+	_update_exit_label(false)
 
 func _process(delta: float) -> void:
 	if _fall_respawn_cooldown > 0.0:
@@ -317,6 +319,7 @@ func _on_exit_area_body_entered(body: Node) -> void:
 		return
 
 	_player_in_exit_zone = true
+	_update_exit_label(_phase == "escape")
 	if _phase == "escape" and objective_label:
 		objective_label.text = "Porta encontrada! Aperte W ou Seta Cima para entrar."
 
@@ -328,6 +331,7 @@ func _on_exit_area_body_exited(body: Node) -> void:
 		return
 
 	_player_in_exit_zone = false
+	_update_exit_label(false)
 	if _phase == "escape" and objective_label:
 		_set_escape_text()
 
@@ -337,6 +341,7 @@ func _complete_level() -> void:
 
 	_phase = "complete"
 	_player_in_exit_zone = false
+	_update_exit_label(false)
 	if objective_label:
 		objective_label.text = "Fase concluida!"
 
@@ -518,3 +523,17 @@ func _try_complete_if_player_in_exit() -> void:
 
 func _process_exit_entry_input() -> void:
 	_try_complete_if_player_in_exit()
+
+func _update_exit_label(show_prompt: bool) -> void:
+	if exit_label == null:
+		return
+
+	if show_prompt:
+		exit_label.text = "ENTRAR  W/↑"
+		exit_label.add_theme_color_override("font_color", Color(0.996078, 0.952941, 0.756863, 1))
+		exit_label.add_theme_font_size_override("font_size", 13)
+		return
+
+	exit_label.text = "SAIDA"
+	exit_label.add_theme_color_override("font_color", Color(0.780392, 1, 0.905882, 1))
+	exit_label.add_theme_font_size_override("font_size", 12)
