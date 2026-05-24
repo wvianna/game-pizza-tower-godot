@@ -76,6 +76,7 @@ func _process(delta: float) -> void:
 		_fall_respawn_cooldown = maxf(_fall_respawn_cooldown - delta, 0.0)
 
 	_check_player_fall_out()
+	_sync_exit_zone_state()
 	_process_exit_entry_input()
 
 	if _phase == "escape":
@@ -132,7 +133,7 @@ func _ensure_controls_overlay() -> void:
 	panel.offset_left = -372.0
 	panel.offset_top = 14.0
 	panel.offset_right = -14.0
-	panel.offset_bottom = 220.0
+	panel.offset_bottom = 248.0
 
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.05, 0.05, 0.09, 0.82)
@@ -153,7 +154,7 @@ func _ensure_controls_overlay() -> void:
 	label.offset_left = 12.0
 	label.offset_top = 10.0
 	label.offset_right = 346.0
-	label.offset_bottom = 194.0
+	label.offset_bottom = 232.0
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
@@ -537,6 +538,33 @@ func _try_complete_if_player_in_exit() -> void:
 
 func _process_exit_entry_input() -> void:
 	_try_complete_if_player_in_exit()
+
+func _sync_exit_zone_state() -> void:
+	var is_in_exit: bool = _is_player_overlapping_exit()
+	if is_in_exit == _player_in_exit_zone:
+		return
+
+	_player_in_exit_zone = is_in_exit
+	_exit_input_latched = false
+	_update_exit_label(_phase == "escape" and _player_in_exit_zone)
+
+	if _phase != "escape" or objective_label == null:
+		return
+
+	if _player_in_exit_zone:
+		objective_label.text = "Porta encontrada! Aperte W ou Seta Cima para entrar."
+	else:
+		_set_escape_text()
+
+func _is_player_overlapping_exit() -> bool:
+	if exit_area == null:
+		return false
+
+	for body in exit_area.get_overlapping_bodies():
+		if body != null and body.is_in_group("player"):
+			return true
+
+	return false
 
 func _update_exit_label(show_prompt: bool) -> void:
 	if exit_label == null:
