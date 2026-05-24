@@ -134,30 +134,61 @@ func _sample_wave(frequency: float, time_sec: float, waveform: String) -> float:
 			return sin(TAU * phase)
 
 func _build_music_stream() -> AudioStreamWAV:
-	var notes: Array[float] = [
-		261.63, 329.63, 392.0, 329.63,
-		293.66, 349.23, 440.0, 349.23,
-		246.94, 329.63, 392.0, 329.63,
-		220.0, 293.66, 349.23, 392.0
-	]
-	var bpm: float = 145.0
-	var step_duration: float = (60.0 / bpm) * 0.5
+	var motif_semitones: Array[int] = [0, 3, 7, 10, 7, 3, 5, 8, 12, 8, 5, 3, 2, 5, 9, 7]
+	var phrase_shifts: Array[int] = [0, 2, 0, -2, 3, 0, -5, 0, 2, -3]
+	var notes: Array[float] = []
+	var root_frequency: float = 196.0
+
+	# 10 frases x 16 notas = 160 notas por ciclo (10x mais notas que a versão anterior).
+	for phrase_index in range(phrase_shifts.size()):
+		var phrase_shift: int = phrase_shifts[phrase_index]
+		for step_index in range(motif_semitones.size()):
+			var semitone: int = motif_semitones[step_index] + phrase_shift
+			if (phrase_index % 2) == 1 and (step_index % 4) == 2:
+				semitone += 1
+			var frequency: float = root_frequency * pow(2.0, float(semitone) / 12.0)
+			notes.append(frequency)
+
+	var bpm: float = 188.0
+	var step_duration: float = (60.0 / bpm) * 0.25
 	var total_duration: float = step_duration * float(notes.size())
 	var sample_count: int = maxi(256, int(total_duration * MIX_RATE))
 	var data: PackedByteArray = PackedByteArray()
 	data.resize(sample_count * 2)
+	var phrase_size: int = motif_semitones.size()
+	var bar_duration: float = step_duration * 2.0
 
 	for i in range(sample_count):
 		var t: float = float(i) / float(MIX_RATE)
 		var note_index: int = int(floor(t / step_duration)) % notes.size()
+		var note_frequency: float = notes[note_index]
 		var note_start: float = float(note_index) * step_duration
 		var note_progress: float = (t - note_start) / step_duration
-		var env: float = clampf(1.0 - note_progress, 0.0, 1.0)
+		var env_attack: float = minf(1.0, note_progress * 18.0)
+		var env_release: float = minf(1.0, (1.0 - note_progress) * 8.0)
+		var env: float = env_attack * env_release
 
-		var lead: float = _sample_wave(notes[note_index], t, "square") * 0.14 * env
-		var bass: float = _sample_wave(notes[note_index] * 0.5, t, "triangle") * 0.1
-		var pulse: float = _sample_wave(55.0, t, "sine") * 0.03
-		var mixed: float = clampf(lead + bass + pulse, -1.0, 1.0)
+		var accent: float = 1.2 if (note_index % 4) == 0 else 1.0
+		var lead: float = _sample_wave(note_frequency, t, "saw") * 0.13 * env * accent
+
+		var counter_index: int = (note_index + 3) % notes.size()
+		var counter_freq: float = notes[counter_index] * 1.5
+		var counter_gate: float = 0.72 if (note_index % 2) == 0 else 0.34
+		var counter: float = _sample_wave(counter_freq, t, "square") * 0.05 * env * counter_gate
+
+		var bass_index: int = int(floor(t / (step_duration * 2.0))) % phrase_size
+		var bass_frequency: float = root_frequency * pow(2.0, float(motif_semitones[bass_index] - 12) / 12.0)
+		var bass: float = _sample_wave(maxf(46.0, bass_frequency), t, "triangle") * 0.1
+
+		var kick_phase: float = fmod(t, bar_duration) / bar_duration
+		var kick_env: float = clampf(1.0 - kick_phase * 5.5, 0.0, 1.0)
+		var kick: float = _sample_wave(52.0 + kick_env * 22.0, t, "sine") * 0.045 * kick_env
+
+		var hat_phase: float = fmod(t, step_duration) / step_duration
+		var hat_env: float = clampf(1.0 - hat_phase * 6.5, 0.0, 1.0)
+		var hat: float = _sample_wave(8000.0, t, "noise") * 0.018 * hat_env
+
+		var mixed: float = clampf(lead + counter + bass + kick + hat, -0.92, 0.92)
 
 		var pcm: int = int(mixed * 32767.0)
 		var byte_index: int = i * 2

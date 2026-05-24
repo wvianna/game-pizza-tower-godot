@@ -25,6 +25,7 @@ var _heart_full_texture: Texture2D = null
 var _heart_empty_texture: Texture2D = null
 var _player_in_exit_zone := false
 var _exit_input_latched := false
+var _exit_lock_hint_latched := false
 
 var _combo_system: Node = null
 var _audio_director: Node = null
@@ -281,7 +282,15 @@ func _on_pillar_destroyed() -> void:
 
 	_register_action(300, "pillar")
 	_emit_audio("pillar_break")
-	_set_escape_text()
+	_exit_lock_hint_latched = false
+	if _player_in_exit_zone or _is_player_close_to_exit():
+		_player_in_exit_zone = true
+		if objective_label:
+			objective_label.text = "Porta encontrada! Aperte W ou Seta Cima para entrar."
+	else:
+		_set_escape_text()
+
+	_update_exit_label(_player_in_exit_zone)
 	_update_hud_labels()
 	_try_complete_if_player_in_exit()
 
@@ -426,7 +435,7 @@ func _deferred_reload_scene() -> void:
 
 func _set_explore_text() -> void:
 	if objective_label:
-		objective_label.text = "Objetivo: destrua o Pillar John"
+		objective_label.text = "Objetivo: destrua o Pillar John para liberar a saida"
 
 func _set_escape_text() -> void:
 	if objective_label:
@@ -517,15 +526,29 @@ func _build_hearts_text(count: int) -> String:
 	return hearts
 
 func _try_complete_if_player_in_exit() -> void:
-	if not _player_in_exit_zone:
+	var is_in_exit_zone_now := _player_in_exit_zone or _is_player_close_to_exit()
+	if not is_in_exit_zone_now:
 		_exit_input_latched = false
+		_exit_lock_hint_latched = false
 		return
+
+	if not _player_in_exit_zone:
+		_player_in_exit_zone = true
+		_update_exit_label(_phase == "escape")
 
 	if _phase != "escape":
 		_exit_input_latched = false
+		if Input.is_action_just_pressed("move_up") and not _exit_lock_hint_latched:
+			_exit_lock_hint_latched = true
+			if objective_label:
+				objective_label.text = "Saida bloqueada: destrua o Pillar John primeiro."
+		_update_exit_label(false)
 		return
 
-	if not Input.is_action_pressed("move_up"):
+	_exit_lock_hint_latched = false
+
+	var wants_enter := Input.is_action_just_pressed("move_up") or Input.is_action_pressed("move_up")
+	if not wants_enter:
 		_exit_input_latched = false
 		return
 
@@ -540,7 +563,7 @@ func _process_exit_entry_input() -> void:
 	_try_complete_if_player_in_exit()
 
 func _sync_exit_zone_state() -> void:
-	var is_in_exit: bool = _is_player_overlapping_exit()
+	var is_in_exit: bool = _is_player_overlapping_exit() or _is_player_close_to_exit()
 	if is_in_exit == _player_in_exit_zone:
 		return
 
@@ -554,6 +577,7 @@ func _sync_exit_zone_state() -> void:
 	if _player_in_exit_zone:
 		objective_label.text = "Porta encontrada! Aperte W ou Seta Cima para entrar."
 	else:
+		_exit_lock_hint_latched = false
 		_set_escape_text()
 
 func _is_player_overlapping_exit() -> bool:
@@ -566,8 +590,29 @@ func _is_player_overlapping_exit() -> bool:
 
 	return false
 
+func _is_player_close_to_exit() -> bool:
+	if exit_area == null:
+		return false
+
+	var player_node_2d := player as Node2D
+	if player_node_2d == null:
+		return false
+
+	var exit_node_2d := exit_area as Node2D
+	if exit_node_2d == null:
+		return false
+
+	var distance := player_node_2d.global_position.distance_to(exit_node_2d.global_position)
+	return distance <= 96.0
+
 func _update_exit_label(show_prompt: bool) -> void:
 	if exit_label == null:
+		return
+
+	if _phase != "escape":
+		exit_label.text = "SAIDA BLOQUEADA"
+		exit_label.add_theme_color_override("font_color", Color(1.0, 0.870588, 0.4, 1.0))
+		exit_label.add_theme_font_size_override("font_size", 11)
 		return
 
 	if show_prompt:
