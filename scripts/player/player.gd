@@ -21,6 +21,7 @@ var _dash_was_active := false
 var _was_on_floor := false
 var _animation_time := 0.0
 var _hit_stun_left := 0.0
+var _taunt_anim_left := 0.0
 
 func _ready() -> void:
 	InputBootstrap.ensure_default_actions()
@@ -108,6 +109,7 @@ func _handle_taunt_parry_input() -> void:
 		return
 
 	parry_taunt_component.activate_taunt()
+	_taunt_anim_left = 0.22
 	_emit_audio("player_taunt")
 	for body in grab_area.get_overlapping_bodies():
 		if parry_taunt_component.try_parry_object(body, _facing_direction):
@@ -187,9 +189,14 @@ func _update_sprite_animation(delta: float, input_axis: float, speed_ratio: floa
 		return
 
 	character_sprite.flip_h = _facing_direction < 0
+	_taunt_anim_left = maxf(_taunt_anim_left - delta, 0.0)
 
 	if _hit_stun_left > 0.0:
 		character_sprite.frame_coords = Vector2i(2, 1)
+		return
+
+	if _taunt_anim_left > 0.0:
+		character_sprite.frame_coords = Vector2i(3, 1)
 		return
 
 	if not is_on_floor():
@@ -198,6 +205,10 @@ func _update_sprite_animation(delta: float, input_axis: float, speed_ratio: floa
 
 	if dash_component.get_current_tier() >= 2:
 		character_sprite.frame_coords = Vector2i(2, 0)
+		return
+
+	if grab_throw_component.has_carried_body():
+		character_sprite.frame_coords = Vector2i(1, 0)
 		return
 
 	if absf(input_axis) > 0.01:
@@ -226,11 +237,13 @@ func _load_character_texture() -> void:
 	if character_sprite == null:
 		return
 
-	var image := Image.new()
-	if image.load("res://imagens/personagens.png") != OK:
+	var texture := load("res://imagens/player_actions.png") as Texture2D
+	if texture == null:
 		return
 
-	character_sprite.texture = ImageTexture.create_from_image(image)
+	character_sprite.hframes = 4
+	character_sprite.vframes = 2
+	character_sprite.texture = texture
 
 func get_dash_tier() -> int:
 	return dash_component.get_current_tier()

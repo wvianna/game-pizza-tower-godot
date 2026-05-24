@@ -15,7 +15,11 @@ script = ExtResource("1_enemy")
 
 [node name="Sprite" type="Sprite2D" parent="VisualRoot"]
 position = Vector2(0, -8)
-scale = Vector2(0.095, 0.095)
+scale = Vector2(0.78, 0.78)
+hframes = 4
+vframes = 2
+frame = 0
+frame_coords = Vector2i(0, 0)
 
 [node name="Shadow" type="Polygon2D" parent="VisualRoot"]
 position = Vector2(0, 24)

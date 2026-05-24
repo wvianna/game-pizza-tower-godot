@@ -21,8 +21,8 @@ script = ExtResource("1_player")
 [node name="VisualRoot" type="Node2D" parent="."]
 
 [node name="CharacterSprite" type="Sprite2D" parent="VisualRoot"]
-position = Vector2(0, -4)
-scale = Vector2(0.23, 0.23)
+position = Vector2(0, -6)
+scale = Vector2(0.72, 0.72)
 hframes = 4
 vframes = 2
 frame = 0

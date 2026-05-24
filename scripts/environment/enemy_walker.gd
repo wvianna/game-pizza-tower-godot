@@ -19,6 +19,9 @@ var _defeated := false
 var _is_carried := false
 var _hold_anchor: Node2D = null
 var _launch_timer := 0.0
+var _alert_timer := 0.0
+var _attack_timer := 0.0
+var _animation_time := 0.0
 
 func _ready() -> void:
 	add_to_group("active_enemy")
@@ -33,6 +36,7 @@ func _physics_process(delta: float) -> void:
 	if _is_carried:
 		if _hold_anchor != null:
 			global_position = _hold_anchor.global_position
+		_update_sprite_animation(delta)
 		return
 
 	velocity.y += gravity * delta
@@ -40,6 +44,12 @@ func _physics_process(delta: float) -> void:
 
 	if _launch_timer > 0.0:
 		_launch_timer = maxf(_launch_timer - delta, 0.0)
+
+	if _alert_timer > 0.0:
+		_alert_timer = maxf(_alert_timer - delta, 0.0)
+
+	if _attack_timer > 0.0:
+		_attack_timer = maxf(_attack_timer - delta, 0.0)
 
 	move_and_slide()
 
@@ -54,6 +64,7 @@ func _physics_process(delta: float) -> void:
 		_direction = -1 if global_position.x > _origin_x else 1
 
 	sprite.flip_h = _direction < 0
+	_update_sprite_animation(delta)
 
 func pickup(_carrier: Node2D, hold_anchor: Node2D) -> void:
 	if _defeated:
@@ -101,6 +112,8 @@ func _on_hit_area_body_entered(body: Node) -> void:
 	if body.has_method("apply_enemy_hit"):
 		body.call("apply_enemy_hit", global_position)
 
+	_attack_timer = 0.14
+	_alert_timer = 0.26
 	get_tree().call_group("audio_director", "play_sfx", "enemy_alert")
 
 func _defeat(reason: String) -> void:
@@ -116,9 +129,45 @@ func _load_enemy_texture() -> void:
 	if sprite == null:
 		return
 
-	var image := Image.new()
-	if image.load("res://imagens/personagens2.webp") != OK:
-		if image.load("res://imagens/personagens.png") != OK:
+	var texture := load("res://imagens/enemy_actions.png") as Texture2D
+	if texture == null:
+		texture = load("res://imagens/player_actions.png") as Texture2D
+		if texture == null:
 			return
 
-	sprite.texture = ImageTexture.create_from_image(image)
+	sprite.hframes = 4
+	sprite.vframes = 2
+	sprite.texture = texture
+
+func _update_sprite_animation(delta: float) -> void:
+	if sprite == null:
+		return
+
+	if _defeated:
+		sprite.frame_coords = Vector2i(3, 1)
+		return
+
+	if _is_carried:
+		sprite.frame_coords = Vector2i(0, 1)
+		return
+
+	if _launch_timer > 0.0:
+		sprite.frame_coords = Vector2i(1, 1)
+		return
+
+	if _alert_timer > 0.0:
+		sprite.frame_coords = Vector2i(3, 0)
+		return
+
+	if _attack_timer > 0.0:
+		sprite.frame_coords = Vector2i(2, 1)
+		return
+
+	if absf(velocity.x) > 20.0:
+		_animation_time += delta * 7.5
+		var walk_frame := 1 + (int(floor(_animation_time)) % 2)
+		sprite.frame_coords = Vector2i(walk_frame, 0)
+		return
+
+	_animation_time = 0.0
+	sprite.frame_coords = Vector2i(0, 0)
