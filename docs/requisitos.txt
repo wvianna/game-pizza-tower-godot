@@ -1,0 +1,37 @@
+1. Mecânicas de Movimentação e Combate
+    • Dash (Investida): Mecânica principal em que o jogador ganha impulso progressivo para destruir inimigos e paredes.
+    • Ataques Verticais: O jogador pode realizar saltos contra inimigos e um golpe semelhante ao shoryuken para alcançar áreas superiores.
+    • Agarrão e Arremesso: Permite pegar inimigos e usá-los como projéteis ou para recuperar o impulso do dash.
+    • Parry e Provocação (Taunt): Funciona tanto para desviar/anular ataques de chefes (parry) quanto para pontuação extra.
+2. Fluxo e Objetivos da Fase
+    • Destruição do Pilar (John Pillar): Funciona como gatilho de conclusão da fase. Ele deve ser atacado no final do percurso.
+    • Pizza Time (A Fuga): Ao destruir o pilar, uma contagem regressiva é iniciada. O jogador deve correr de volta para a entrada da fase enquanto novos caminhos se abrem e obstáculos mudam.
+    • Coletáveis: Salas secretas com itens, resgate de personagens presos em jaulas e ingredientes de pizza distribuídos pelo mapa.
+
+
+Pizza Tower é um jogo de plataforma 2D altamente dinâmico que enfatiza momento (inércia), exploração e disputas por pontuação (score attacks). Seus requisitos funcionais principais centram-se na locomoção em alta velocidade do jogador, gatilhos de ambientes destrutíveis, sequências de fuga em tempo real, progressão baseada em colecionáveis e um sistema de pontuação de combo no estilo arcade. [1, 2, 3, 4, 5]
+Os requisitos funcionais para construir ou emular o Pizza Tower podem ser divididos em cinco módulos principais:
+1. Mecânicas do Jogador em Alta Velocidade
+O sistema de movimentação é a característica definidora do jogo, exigindo estados distintos para construir e manter o momento.
+    • Investida / Corrida (Dash / Run): O personagem aumenta a velocidade ao longo do tempo; segurar o botão de corrida ativa uma investida em supervelocidade que destrói blocos quebráveis.
+    • Agarrar / Arremessar (Grab / Throw): Habilidade de agarrar inimigos e arremessá-los contra paredes ou outros inimigos.
+    • Esmagamento Corporal / Super Pulo (Body Slam / Super Jump): Um movimento de esmagamento para baixo e um super pulo vertical que lança o jogador para cima ao agachar e segurar o botão de pulo.
+    • Parry (Aparar): Uma manobra defensiva no tempo correto que cancela o dano e transforma os inimigos em projéteis. [1, 2, 3, 4]
+2. O Sistema de Fuga "Pizza Time"
+A maioria das fases é dividida em duas fases distintas que exigem um mecanismo de cronômetro.
+    • Fase 1 (Exploração): O jogador navega pela fase para encontrar um grande pilar central (Pillar John).
+    • Fase 2 (A Fuga): Danificar o pilar inicia uma sequência de fuga com um cronômetro de contagem regressiva. Portais tornam-se ativos, exigindo que o jogador corra de volta ao início da fase dentro do limite de tempo.
+    • Mecânica da Volta 2 (Lap 2): Passar pelo checkpoint final gera um portal que permite uma segunda volta, mais difícil, de retorno pela fase. [1, 2]
+3. Progressão de Fase e Colecionáveis
+As fases são projetadas com caminhos ramificados e incentivos ocultos para impulsionar as métricas de conclusão. [1]
+    • Toppins: 5 criaturas de ingredientes de pizza presas e escondidas em cada fase. Resgatá-las rende pontos e abre os portões dos chefes.
+    • Salas Secretas: 3 áreas ocultas por fase que teletransportam o jogador para salas de bônus de plataforma para pontos extras.
+    • Zelador e Tesouro (Janitor & Treasure): Sistema para encontrar um NPC específico (Gerome) e levá-lo até uma porta trancada para garantir o Tesouro Secreto da Torre. [1]
+4. Sistema de Combo e Pontuação
+    • Pizza Tower não utiliza vidas tradicionais ou configurações de dificuldade convencionais. Em vez disso, a dificuldade está inteiramente ligada às métricas de desempenho.
+    • Combos Contínuos: O jogo exige a manutenção de uma sequência contínua de ações (coletar itens, atingir inimigos) para acumular um multiplicador de pontuação. Se nenhuma ação for realizada, o combo esvazia e falha.
+    • Rankings: A tela final de conclusão de fase concede ranks (de D até P) com base na pontuação total, eliminações, segredos e na manutenção do combo durante toda a sequência de fuga. [1, 2, 3]
+5. Arquitetura das Lutas de Chefe
+As fases de chefes funcionam de maneira diferente dos estágios de ação padrão.
+    • Combate em Arena: Em vez de uma fase longa e linear, o jogador fica trancado em uma arena com um chefe específico.
+    • Pontos de Vida: Os chefes exigem múltiplos acertos (por exemplo, 6 pontos de vida) para serem derrotados, forçando o jogador a usar repetidamente as mecânicas de investida e arremesso. [1]

@@ -1,0 +1,7 @@
+O layout padrão do Pizza Tower no controle de Xbox (ou genérico) é bem intuitivo.
+Para jogar, você usa o analógico esquerdo ou o D-Pad para se movimentar. [1, 2]
+    • Botão A: Pular / Interagir
+    • Botão X ou RB: Agarrar / Arremessar
+    • Botão B ou RT: Correr (Dash)
+    • Botão Y: Provocar (Taunt) / Aparar (Parry)
+    • Gatilho Esquerdo (LT): Agachar / Deslizar [1, 2]

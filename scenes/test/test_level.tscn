@@ -1,0 +1,138 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/environment/destructible_block.tscn" id="2_block"]
+[ext_resource type="PackedScene" path="res://scenes/environment/throwable_object.tscn" id="3_throwable"]
+[ext_resource type="Script" path="res://scripts/environment/cloud_layer.gd" id="4_cloud_layer"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(1200, 60)
+
+[sub_resource type="Gradient" id="2"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(0.137255, 0.188235, 0.337255, 1, 0.262745, 0.388235, 0.572549, 1, 0.592157, 0.72549, 0.901961, 1)
+
+[sub_resource type="GradientTexture2D" id="3"]
+gradient = SubResource("2")
+width = 2048
+height = 1152
+
+[sub_resource type="StyleBoxFlat" id="4"]
+bg_color = Color(0.0392157, 0.0470588, 0.101961, 0.78)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.847059, 0.611765, 0.141176, 0.95)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 5
+
+[node name="TestLevel" type="Node2D"]
+
+[node name="Background" type="Sprite2D" parent="."]
+position = Vector2(1024, 576)
+texture = SubResource("3")
+centered = true
+z_index = -30
+
+[node name="SunGlow" type="Polygon2D" parent="."]
+position = Vector2(1680, 190)
+color = Color(1, 0.85098, 0.435294, 0.2)
+polygon = PackedVector2Array(0, -130, 65, -112, 112, -65, 130, 0, 112, 65, 65, 112, 0, 130, -65, 112, -112, 65, -130, 0, -112, -65, -65, -112)
+z_index = -28
+
+[node name="SunCore" type="Polygon2D" parent="."]
+position = Vector2(1680, 190)
+color = Color(1, 0.933333, 0.611765, 0.85)
+polygon = PackedVector2Array(0, -62, 31, -54, 54, -31, 62, 0, 54, 31, 31, 54, 0, 62, -31, 54, -54, 31, -62, 0, -54, -31, -31, -54)
+z_index = -27
+
+[node name="BackHills" type="Polygon2D" parent="."]
+color = Color(0.141176, 0.211765, 0.356863, 1)
+polygon = PackedVector2Array(-220, 640, 110, 500, 420, 575, 760, 450, 1080, 530, 1350, 430, 1710, 545, 2010, 455, 2300, 640, 2300, 1200, -220, 1200)
+z_index = -20
+
+[node name="MidHills" type="Polygon2D" parent="."]
+color = Color(0.168627, 0.278431, 0.431373, 1)
+polygon = PackedVector2Array(-220, 710, 80, 600, 340, 645, 590, 560, 850, 635, 1120, 535, 1410, 655, 1680, 565, 1970, 700, 2300, 700, 2300, 1200, -220, 1200)
+z_index = -15
+
+[node name="CloudLayer" type="Node2D" parent="."]
+script = ExtResource("4_cloud_layer")
+z_index = -12
+
+[node name="CloudA" type="Polygon2D" parent="CloudLayer"]
+position = Vector2(260, 220)
+color = Color(0.890196, 0.952941, 1, 0.8)
+polygon = PackedVector2Array(-90, 0, -70, -22, -30, -30, 0, -24, 28, -34, 60, -22, 92, -4, 82, 16, 50, 22, 14, 18, -28, 24, -64, 18, -86, 8)
+
+[node name="CloudB" type="Polygon2D" parent="CloudLayer"]
+position = Vector2(980, 170)
+color = Color(0.905882, 0.968627, 1, 0.74)
+polygon = PackedVector2Array(-110, 4, -86, -19, -42, -28, -12, -22, 20, -31, 58, -26, 92, -8, 112, 8, 98, 24, 64, 26, 20, 20, -22, 24, -62, 22, -96, 14)
+
+[node name="CloudC" type="Polygon2D" parent="CloudLayer"]
+position = Vector2(1560, 250)
+color = Color(0.890196, 0.952941, 1, 0.7)
+polygon = PackedVector2Array(-86, 4, -68, -18, -28, -24, 4, -19, 34, -28, 62, -20, 90, -4, 82, 16, 50, 20, 12, 18, -26, 21, -58, 16, -80, 10)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(180, 420)
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2(640, 660)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource("1")
+
+[node name="FloorVisual" type="Polygon2D" parent="Floor"]
+color = Color(0.168627, 0.141176, 0.172549, 1)
+polygon = PackedVector2Array(-600, -30, 600, -30, 600, 30, -600, 30)
+
+[node name="FloorTop" type="Polygon2D" parent="Floor"]
+color = Color(0.984314, 0.796078, 0.298039, 1)
+polygon = PackedVector2Array(-600, -30, 600, -30, 600, -12, -600, -12)
+
+[node name="FloorHighlight" type="Polygon2D" parent="Floor"]
+color = Color(1, 0.901961, 0.517647, 0.46)
+polygon = PackedVector2Array(-600, -30, 600, -30, 600, -24, -600, -24)
+
+[node name="DestructibleBlock" parent="." instance=ExtResource("2_block")]
+position = Vector2(780, 612)
+
+[node name="ThrowableObjectA" parent="." instance=ExtResource("3_throwable")]
+position = Vector2(420, 612)
+
+[node name="ThrowableObjectB" parent="." instance=ExtResource("3_throwable")]
+position = Vector2(520, 612)
+
+[node name="HudLayer" type="CanvasLayer" parent="."]
+
+[node name="InfoPanel" type="Panel" parent="HudLayer"]
+offset_left = 14.0
+offset_top = 14.0
+offset_right = 610.0
+offset_bottom = 132.0
+theme_override_styles/panel = SubResource("4")
+
+[node name="TitleLabel" type="Label" parent="HudLayer"]
+offset_left = 28.0
+offset_top = 24.0
+offset_right = 270.0
+offset_bottom = 48.0
+theme_override_colors/font_color = Color(1, 0.909804, 0.580392, 1)
+theme_override_font_sizes/font_size = 16
+text = "Arena de Teste - Art Pass"
+
+[node name="InfoLabel" type="Label" parent="HudLayer"]
+offset_left = 24.0
+offset_top = 50.0
+offset_right = 596.0
+offset_bottom = 124.0
+theme_override_colors/font_color = Color(0.921569, 0.956863, 0.992157, 1)
+theme_override_font_sizes/font_size = 14
+text = "Mover: A/D ou Setas | Pular: Espaco/Z | Dash: Shift/X\nAgarrar: J/C | Taunt/Parry: K/V | Agachar: Ctrl/S/Seta Baixo"

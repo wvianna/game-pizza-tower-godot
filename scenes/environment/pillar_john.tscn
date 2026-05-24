@@ -1,0 +1,53 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/pillar_john.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(70, 168)
+
+[node name="PillarJohn" type="Area2D"]
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
+
+[node name="IntactVisual" type="Node2D" parent="."]
+
+[node name="MainBody" type="Polygon2D" parent="IntactVisual"]
+color = Color(0.886275, 0.854902, 0.756863, 1)
+polygon = PackedVector2Array(-35, -84, 35, -84, 35, 84, -35, 84)
+
+[node name="Accent" type="Polygon2D" parent="IntactVisual"]
+color = Color(0.721569, 0.596078, 0.431373, 1)
+polygon = PackedVector2Array(-30, -74, 30, -74, 30, -58, -30, -58)
+
+[node name="MiddleBand" type="Polygon2D" parent="IntactVisual"]
+color = Color(0.709804, 0.603922, 0.462745, 1)
+polygon = PackedVector2Array(-30, -6, 30, -6, 30, 8, -30, 8)
+
+[node name="Eye" type="Polygon2D" parent="IntactVisual"]
+position = Vector2(0, -26)
+color = Color(0.192157, 0.180392, 0.180392, 1)
+polygon = PackedVector2Array(-9, -6, 9, -6, 9, 6, -9, 6)
+
+[node name="Outline" type="Line2D" parent="IntactVisual"]
+default_color = Color(0.356863, 0.294118, 0.203922, 1)
+width = 3.0
+points = PackedVector2Array(-35, -84, 35, -84, 35, 84, -35, 84, -35, -84)
+
+[node name="BrokenVisual" type="Node2D" parent="."]
+
+[node name="ChunkA" type="Polygon2D" parent="BrokenVisual"]
+position = Vector2(-14, -18)
+color = Color(0.827451, 0.788235, 0.694118, 1)
+polygon = PackedVector2Array(-20, -40, 18, -34, 14, 2, -18, 8)
+
+[node name="ChunkB" type="Polygon2D" parent="BrokenVisual"]
+position = Vector2(10, 24)
+color = Color(0.815686, 0.776471, 0.670588, 1)
+polygon = PackedVector2Array(-16, -4, 20, -12, 14, 42, -18, 36)
+
+[node name="Crack" type="Line2D" parent="BrokenVisual"]
+default_color = Color(0.403922, 0.301961, 0.219608, 1)
+width = 3.0
+points = PackedVector2Array(-12, -38, -2, -10, -8, 18, 4, 42)
